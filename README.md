@@ -65,14 +65,14 @@ The application follows a modern client-server architecture:
 ```
 ┌─────────────┐       ┌─────────────┐       ┌─────────────┐
 │             │       │             │       │             │
-│  React.js   │◄─────►│  Flask API  │◄─────►│  HERE Maps  │
+│  React.js   │◄─────►│  Fast API  │◄─────►│  HERE Maps  │
 │  Frontend   │       │  Backend    │       │  Services   │
 │             │       │             │       │             │
 └─────────────┘       └─────────────┘       └─────────────┘
 ```
 
 - **Frontend**: React.js application with HERE Maps JavaScript SDK
-- **Backend**: Flask API for file processing and POI validation
+- **Backend**: Fast API for file processing and POI validation
 - **Data Storage**: Validated files are stored in a `/data` directory
 
 ## 💻 Technology Stack
@@ -86,8 +86,7 @@ The application follows a modern client-server architecture:
 
 ### Backend
 - Python 3.8+
-- Flask
-- Flask-CORS
+- Fast API
 
 ### DevOps
 - Docker & Docker Compose
@@ -103,7 +102,7 @@ Guadalahacks/
 │   ├── src/              # Source code
 │   └── Dockerfile        # Frontend Docker configuration
 │
-├── backend/              # Flask backend service
+├── backend/              # Fast API backend service
 │   ├── app.py            # Main application file
 │   ├── requirements.txt  # Python dependencies
 │   └── Dockerfile        # Backend Docker configuration
