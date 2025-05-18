@@ -167,21 +167,22 @@ def create_wkt_polygon(bounds):
     return wkt
 
 def get_satellite_tile(lat, lon, zoom, tile_format, tile_size, api_key, output_path=None):
-    """
-    Obtiene un tile de satélite para las coordenadas dadas.
-    
-    Args:
-        lat (float): Latitud del punto
-        lon (float): Longitud del punto
-        zoom (int): Nivel de zoom
-        tile_format (str): Formato del tile (png, jpg)
-        tile_size (int): Tamaño del tile
-        api_key (str): API Key para HERE Maps
-        output_path (str, optional): Si se proporciona, guarda la imagen en esta ruta
-        
-    Returns:
-        PIL.Image si output_path es None, o True/False si output_path es proporcionado
-    """
+"""
+Obtains a satellite image tile for the given coordinates.
+
+Args:
+    lat (float): Latitude of the point
+    lon (float): Longitude of the point
+    zoom (int): Zoom level
+    tile_format (str): Tile format (png, jpg)
+    tile_size (int): Tile size in pixels
+    api_key (str): API Key for HERE Maps
+    output_path (str, optional): If provided, saves the image to this path
+
+Returns:
+    PIL.Image if output_path is None, or True/False if output_path is provided
+"""
+
     x, y = lat_lon_to_tile(lat, lon, zoom)
     
     # Construir la URL para la API de tiles de mapas
