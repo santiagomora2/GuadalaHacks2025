@@ -10,8 +10,13 @@ TEMP_DIR = os.environ.get('TEMP_DIR', 'temp')
 # Funciones de procesamiento de datos
 def get_points_df(path_gdf: str, path_points: str):
     """
-    Obtiene un DataFrame con los puntos de interés que tienen un link_id cuya ruta presenta
-    multidigitalización.
+    The function merges the point table and the GeoJSON to find the points of interest that have a link_id whose route shows 
+    multi-digitization. It returns the dataframe of points with these cases and the linestring (geometry) associated with their link_id. 
+    It adds a label indicating whether the link_id for the point has multi-digitization or not.
+
+    Input: GeoJSON file path, POI.csv  
+
+    Output: CSV with the database of points, the linestring of their link_id, and a classification indicating whether their route has multi-digitization or not
     """
     # Verificar si los archivos existen
     if not os.path.exists(path_gdf):
@@ -31,7 +36,7 @@ def get_points_df(path_gdf: str, path_points: str):
     poi_df = pd.read_csv(path_points, encoding="utf-8")
     poi_df.drop_duplicates(subset=["LINK_ID", "POI_ID"], keep="first", inplace=True)
     
-    # Merge
+    # Merge on link_id
     poi_df = poi_df.merge(
         gdf[['link_id', 'geometry']],
         left_on='LINK_ID',
