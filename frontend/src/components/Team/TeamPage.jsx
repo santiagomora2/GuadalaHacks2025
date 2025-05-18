@@ -174,8 +174,8 @@ const developers = [
     name: "Santiago Mora Cruz",
     role: "Data Scientist",
     photo: developer1,
-    github: "https://github.com/santiagomora",
-    linkedin: "https://linkedin.com/in/santiagomora",
+    github: "https://github.com/santiagomora2/",
+    linkedin: "https://www.linkedin.com/in/santiago-mora-28a1732b4/",
   },
   {
     id: 2,
@@ -190,8 +190,8 @@ const developers = [
     name: "Rene Abraham Calzadilla Calderon",
     role: "Data Scientist",
     photo: developer3,
-    github: "https://github.com/rene-abraham",
-    linkedin: "https://linkedin.com/in/rene-abraham",
+    github: "https://github.com/rene-calz",
+    linkedin: "https://www.linkedin.com/in/rcalzadillaphi/",
   },
   {
     id: 4,

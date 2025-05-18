@@ -2,13 +2,14 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 import os
+import traceback
 
 # Utilizar variables de entorno
 DATA_DIR = os.environ.get('DATA_DIR', '../data')
 TEMP_DIR = os.environ.get('TEMP_DIR', 'temp')
 
 # Funciones de procesamiento de datos
-def get_points_df(path_gdf: str, path_points: str):
+def get_points_df(path_gdf: str, path_points: str, slice=-1):
     """
     Obtiene un DataFrame con los puntos de interés que tienen un link_id cuya ruta presenta
     multidigitalización.
@@ -46,7 +47,7 @@ def get_points_df(path_gdf: str, path_points: str):
     poi_df.loc[:, "label_rm"] = np.where(poi_df["POI_ID"].isin(poi_rm), 1, 0)
     
     # Filtrar y devolver
-    return poi_df.loc[(poi_df["label_rm"] == 1) & (poi_df["POI_ST_SD"].isin(["L", "R"]))].reset_index(drop=True)
+    return poi_df.loc[(poi_df["label_rm"] == 1) & (poi_df["POI_ST_SD"].isin(["L", "R"]))].reset_index(drop=True)[:slice]
 
 def create_dicts_for_sorting(df):
     """Crea diccionarios para ordenamiento de coordenadas."""
@@ -220,7 +221,7 @@ def get_final_df(df):
     """Obtiene el DataFrame final con los puntos que tienen camellon."""
     return df[df['POI_ST_SD'] == df['camellon']]
 
-def process_data():
+def process_data(slice=-1):
     """Procesa los datos y obtiene el DataFrame final."""
     # Intentar encontrar los archivos en múltiples posibles ubicaciones
     possible_data_dirs = [
@@ -250,23 +251,28 @@ def process_data():
     
     print(f"Usando archivos: {path_gdf}, {path_poi}")
     
-    # Obtener DataFrame de puntos
-    df_poi = get_points_df(path_gdf, path_poi)
-    
-    # Crear diccionarios y ordenamientos
-    coord = create_dicts_for_sorting(df_poi)
-    x_sorted, y_sorted = get_sorted_x_y(df_poi)
-    
-    # Encontrar parejas
-    encontrar_link_alineados_fulldf(x_sorted, y_sorted, coord, df_poi)
-    
-    # Agregar coordenadas de la pareja
-    agregar_coordenadas_pareja(df_poi)
-    
-    # Agregar columna camellon
-    add_camellon_column_for_df(df_poi)
-    
-    # Obtener DataFrame final
-    final_df = get_final_df(df_poi)
-    
-    return final_df
+    try:
+        # Obtener DataFrame de puntos
+        df_poi = get_points_df(path_gdf, path_poi, slice)
+        
+        # Crear diccionarios y ordenamientos
+        coord = create_dicts_for_sorting(df_poi)
+        x_sorted, y_sorted = get_sorted_x_y(df_poi)
+        
+        # Encontrar parejas
+        encontrar_link_alineados_fulldf(x_sorted, y_sorted, coord, df_poi)
+        
+        # Agregar coordenadas de la pareja
+        agregar_coordenadas_pareja(df_poi)
+        
+        # Agregar columna camellon
+        add_camellon_column_for_df(df_poi)
+        
+        # Obtener DataFrame final
+        final_df = get_final_df(df_poi)
+        
+        return final_df
+    except Exception as e:
+        print(f"Error en process_data: {str(e)}")
+        print(traceback.format_exc())
+        raise

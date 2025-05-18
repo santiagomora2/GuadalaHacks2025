@@ -25,10 +25,15 @@ sys.path.append(os.path.abspath('.'))
 load_dotenv()
 
 # Configuración de variables a partir del .env o usar valores por defecto
-API_KEY = os.getenv('HERE_API_KEY', 'wEmGiRQk7GrIqqwGGmhK-Qjmdg-KkkUFXOGAjfjzsoQ')
-PORT = int(os.getenv('PORT', 5000))  # Cambiado a 5000 para coincidir con frontend
+API_KEY = os.getenv('HERE_API_KEY', '')
+PORT = int(os.getenv('PORT', 5000))
 HOST = os.getenv('HOST', '0.0.0.0')
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+
+# Configuración de imágenes satélite
+SATELLITE_ZOOM_LEVEL = int(os.getenv('SATELLITE_ZOOM_LEVEL', 19))
+SATELLITE_TILE_FORMAT = os.getenv('SATELLITE_TILE_FORMAT', 'png')
+SATELLITE_TILE_SIZE = int(os.getenv('SATELLITE_TILE_SIZE', 256))
 
 # Configuración de rutas para adaptarse a la estructura del proyecto
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -41,12 +46,15 @@ os.environ['API_KEY'] = API_KEY
 os.environ['DATA_DIR'] = DATA_DIR
 os.environ['TEMP_DIR'] = TEMP_DIR
 os.environ['MODEL_PATH'] = MODEL_PATH
+os.environ['SATELLITE_ZOOM_LEVEL'] = str(SATELLITE_ZOOM_LEVEL)
+os.environ['SATELLITE_TILE_FORMAT'] = SATELLITE_TILE_FORMAT
+os.environ['SATELLITE_TILE_SIZE'] = str(SATELLITE_TILE_SIZE)
 
 try:
     # Importar funciones desde módulos personalizados
     from functions.cnn_functions import predecir
     from functions.data_processing_functions import process_data
-    from functions.satellite_functions import *
+    from functions.satellite_functions import punto_y_perpendicular, get_satellite_tile
 except ImportError as e:
     print(f"Error importando módulos: {e}")
     # Crear un mensaje de error más detallado
@@ -116,7 +124,7 @@ async def process_and_predict(background_tasks: BackgroundTasks):
         # Procesar datos
         try:
             print(f"Iniciando process_data()")
-            final_df = process_data()
+            final_df = process_data(slice=500)
             print(f"Procesamiento exitoso, dataframe con {len(final_df)} filas")
         except Exception as e:
             print(f"Error en process_data(): {str(e)}")
@@ -284,3 +292,20 @@ if __name__ == "__main__":
     print(f"Temp directory: {TEMP_DIR}")
     print(f"Model path: {MODEL_PATH}")
     uvicorn.run("app:app", host=HOST, port=PORT, reload=DEBUG)
+    try:
+        # Eliminar todos los archivos en el directorio 'data'
+        files = glob.glob(os.path.join(DATA_DIR, '*'))
+        for f in files:
+            if os.path.isfile(f):
+                os.remove(f)
+            elif os.path.isdir(f):
+                shutil.rmtree(f)
+        print(f"Cleaned up data directory: {DATA_DIR}")
+    except Exception as e:
+        print(f"Warning: Could not clean up data directory: {str(e)}")
+        
+        # Definir nombres estandarizados para los archivos
+        poi_filename = "POI.csv"
+        nav_filename = "NAV.geojson"
+        
+        # Guardar archivos en el directorio '

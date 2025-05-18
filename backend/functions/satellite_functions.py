@@ -2,14 +2,14 @@ import pandas as pd
 import ast
 from PIL import Image
 from torchvision import transforms
-from tqdm import tqdm
 import numpy as np
 import requests
 import math
 import os
+import io
 
 # Obtener API KEY desde variables de entorno
-API_KEY = os.environ.get('API_KEY', 'wEmGiRQk7GrIqqwGGmhK-Qjmdg-KkkUFXOGAjfjzsoQ')
+API_KEY = os.environ.get('API_KEY', 'eVp5bxaGV_HO246C7MkTPsgR1jTzYzuy3CO76Fk9ESI')
 
 # Función para calcular puntos perpendiculares
 def punto_y_perpendicular(coords, percent, side='R'):
@@ -79,7 +79,6 @@ def punto_y_perpendicular(coords, percent, side='R'):
         'nodo_inicial': nodo_inicial
     }
 
-
 # Funciones para manejo de tiles y coordenadas
 def lat_lon_to_tile(lat, lon, zoom):
     """Convierte latitud y longitud a índices de tile (x, y) en un nivel de zoom dado."""
@@ -112,22 +111,41 @@ def create_wkt_polygon(bounds):
     wkt = f"POLYGON(({lon1} {lat1}, {lon2} {lat2}, {lon3} {lat3}, {lon4} {lat4}, {lon1} {lat1}))"
     return wkt
 
-def get_satellite_tile(lat, lon, zoom, tile_format, tile_size, api_key, output_path):
-    """Obtiene un tile de satélite para las coordenadas dadas."""
+def get_satellite_tile(lat, lon, zoom, tile_format, tile_size, api_key, output_path=None):
+    """
+    Obtiene un tile de satélite para las coordenadas dadas.
+    
+    Args:
+        lat (float): Latitud del punto
+        lon (float): Longitud del punto
+        zoom (int): Nivel de zoom
+        tile_format (str): Formato del tile (png, jpg)
+        tile_size (int): Tamaño del tile
+        api_key (str): API Key para HERE Maps
+        output_path (str, optional): Si se proporciona, guarda la imagen en esta ruta
+        
+    Returns:
+        PIL.Image si output_path es None, o True/False si output_path es proporcionado
+    """
     x, y = lat_lon_to_tile(lat, lon, zoom)
     
     # Construir la URL para la API de tiles de mapas
-    url = f'https://maps.hereapi.com/v3/base/mc/{zoom}/{x}/{y}/{tile_format}&style=satellite.day&size={tile_size}?apiKey={api_key}'
+    url = f'https://maps.hereapi.com/v3/base/mc/{zoom}/{x}/{y}/{tile_format}?style=satellite.day&size={tile_size}&apiKey={api_key}'
     
     # Hacer la petición
     response = requests.get(url)
     
     # Verificar si la petición fue exitosa
     if response.status_code == 200:
-        # Guardar el tile en un archivo
-        with open(output_path, 'wb') as file:
-            file.write(response.content)
-        return True
+        if output_path:
+            # Guardar el tile en un archivo
+            with open(output_path, 'wb') as file:
+                file.write(response.content)
+            return True
+        else:
+            # Devolver la imagen como objeto PIL.Image
+            image = Image.open(io.BytesIO(response.content)).convert("RGB")
+            return image
     else:
         print(f"Error al obtener tile: {response.status_code}, URL: {url}")
         return False

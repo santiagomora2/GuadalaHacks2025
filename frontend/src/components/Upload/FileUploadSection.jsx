@@ -573,29 +573,6 @@ const FileUploadSection = () => {
                 : `Error: ${errorMsg}`}
         </ValidationMessage>
       )}
-      
-      {poiData && (
-        <StatsContainer>
-          <StatItem>
-            <StatValue>{stats.total}</StatValue>
-            <StatLabel>Total POIs</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatValue color="#4CAF50">{stats.valid}</StatValue>
-            <StatLabel>Valid POIs</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatValue color="#F44336">{stats.invalid}</StatValue>
-            <StatLabel>Invalid POIs</StatLabel>
-          </StatItem>
-          <StatItem>
-            <StatValue color={stats.percentage > 80 ? '#4CAF50' : stats.percentage > 60 ? '#FFC107' : '#F44336'}>
-              {stats.percentage}%
-            </StatValue>
-            <StatLabel>Validity Rate</StatLabel>
-          </StatItem>
-        </StatsContainer>
-      )}
     </UploadContainer>
   );
 };

@@ -82,11 +82,35 @@ const TableBody = styled.tbody`
       background-color: #f0f4ff;
     }
     
-    &.invalid {
+    &.non-existent {
       background-color: rgba(244, 67, 54, 0.1);
       
       &:hover {
         background-color: rgba(244, 67, 54, 0.2);
+      }
+    }
+    
+    &.wrong-location {
+      background-color: rgba(255, 152, 0, 0.1);
+      
+      &:hover {
+        background-color: rgba(255, 152, 0, 0.2);
+      }
+    }
+    
+    &.invalid {
+      background-color: rgba(156, 39, 176, 0.1);
+      
+      &:hover {
+        background-color: rgba(156, 39, 176, 0.2);
+      }
+    }
+    
+    &.exception {
+      background-color: rgba(76, 175, 80, 0.1);
+      
+      &:hover {
+        background-color: rgba(76, 175, 80, 0.2);
       }
     }
   }
@@ -108,7 +132,15 @@ const StatusBadge = styled.span`
   font-size: 12px;
   font-weight: 500;
   color: white;
-  background-color: ${props => props.valid ? '#4CAF50' : '#F44336'};
+  background-color: ${props => {
+    switch(props.status) {
+      case 'non-existent': return '#F44336'; // Red
+      case 'wrong-location': return '#FF9800'; // Orange
+      case 'invalid': return '#9C27B0'; // Purple
+      case 'exception': return '#4CAF50'; // Green
+      default: return '#757575'; // Grey
+    }
+  }};
 `;
 
 const Pagination = styled.div`
@@ -150,10 +182,11 @@ const PageButton = styled.button`
 
 const StatsContainer = styled.div`
   display: flex;
-  gap: 20px;
+  gap: 15px;
   padding: 15px 20px;
   background-color: #f8f9fb;
   border-bottom: 1px solid #e4e9f0;
+  flex-wrap: wrap;
 `;
 
 const StatBox = styled.div`
@@ -162,6 +195,7 @@ const StatBox = styled.div`
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   padding: 12px 15px;
   flex: 1;
+  min-width: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -177,6 +211,7 @@ const StatTitle = styled.span`
   font-size: 13px;
   color: #666;
   margin-bottom: 5px;
+  text-align: center;
 `;
 
 const StatValue = styled.span`
@@ -190,6 +225,7 @@ const FilterContainer = styled.div`
   margin: 15px 0;
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 `;
 
 const FilterButton = styled.button`
@@ -222,6 +258,33 @@ const EmptyState = styled.div`
   }
 `;
 
+const DebugPanel = styled.div`
+  margin: 15px 20px;
+  padding: 15px;
+  background-color: #f0f4f8;
+  border-radius: 8px;
+  border: 1px solid #d0d9e4;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const DebugTitle = styled.h3`
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+`;
+
+const DebugContent = styled.pre`
+  background-color: #1e1e1e;
+  color: #f8f8f8;
+  padding: 10px;
+  border-radius: 5px;
+  overflow: auto;
+  font-size: 12px;
+  max-height: 200px;
+`;
+
 const POIListComponent = () => {
   // State variables
   const [poiList, setPoiList] = useState([]);
@@ -231,11 +294,33 @@ const POIListComponent = () => {
   const [sortDirection, setSortDirection] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [stats, setStats] = useState({ total: 0, valid: 0, invalid: 0 });
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'valid', or 'invalid'
+  const [stats, setStats] = useState({ 
+    total: 0, 
+    non_existent: 0, 
+    wrong_location: 0,
+    invalid_location: 0,
+    rule_exception: 0
+  });
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'non_existent', 'wrong_location', etc.
+  const [showDebug, setShowDebug] = useState(true);
   
   // Get POI data from context
   const { poiData } = useContext(POIContext);
+  
+  // Helper function to determine status from label
+  const getStatusFromLabel = (label) => {
+    if (typeof label === 'string') {
+      if (label.startsWith('1.')) return 'non-existent';
+      if (label.startsWith('2.')) return 'wrong-location';
+      if (label.startsWith('3.')) return 'invalid';
+      if (label.startsWith('4.')) return 'exception';
+    } else if (label === 0 || label === '0') {
+      return 'non-existent';
+    } else if (label === 1 || label === '1') {
+      return 'exception';
+    }
+    return 'unknown';
+  };
   
   // Process POI data when it changes
   useEffect(() => {
@@ -243,21 +328,29 @@ const POIListComponent = () => {
     
     try {
       // Convert object to array for table display
-      const poiArray = Object.entries(poiData).map(([id, poi]) => ({
-        id,
-        ...poi
-      }));
+      const poiArray = Object.entries(poiData).map(([id, poi]) => {
+        const status = getStatusFromLabel(poi.label);
+        return {
+          id,
+          ...poi,
+          status
+        };
+      });
       
       // Calculate stats
       const totalPOIs = poiArray.length;
-      const validPOIs = poiArray.filter(poi => poi.label === 1).length;
-      const invalidPOIs = poiArray.filter(poi => poi.label === 0).length;
+      const nonExistentPOIs = poiArray.filter(poi => poi.status === 'non-existent').length;
+      const wrongLocationPOIs = poiArray.filter(poi => poi.status === 'wrong-location').length;
+      const invalidLocationPOIs = poiArray.filter(poi => poi.status === 'invalid').length;
+      const ruleExceptionPOIs = poiArray.filter(poi => poi.status === 'exception').length;
       
       // Set stats
       setStats({
         total: totalPOIs,
-        valid: validPOIs,
-        invalid: invalidPOIs
+        non_existent: nonExistentPOIs,
+        wrong_location: wrongLocationPOIs,
+        invalid_location: invalidLocationPOIs,
+        rule_exception: ruleExceptionPOIs
       });
       
       // Set the POI list
@@ -276,10 +369,8 @@ const POIListComponent = () => {
     // First apply status filter
     let filtered = [...poiList];
     
-    if (statusFilter === 'valid') {
-      filtered = filtered.filter(poi => poi.label === 1);
-    } else if (statusFilter === 'invalid') {
-      filtered = filtered.filter(poi => poi.label === 0);
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(poi => poi.status === statusFilter);
     }
     
     // Then apply search filter
@@ -387,6 +478,17 @@ const POIListComponent = () => {
     return typeof value === 'number' ? value.toFixed(6) : value;
   };
   
+  // Get the human-readable status text
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'non-existent': return 'POI Non-existent';
+      case 'wrong-location': return 'Wrong Location';
+      case 'invalid': return 'Invalid Location';
+      case 'exception': return 'Rule Exception';
+      default: return 'Unknown';
+    }
+  };
+  
   // Render the stats section
   const renderStats = () => {
     return (
@@ -401,19 +503,35 @@ const POIListComponent = () => {
         </StatBox>
         <StatBox 
           clickable={true} 
-          selected={statusFilter === 'valid'}
-          onClick={() => handleStatusFilter('valid')}
+          selected={statusFilter === 'non-existent'}
+          onClick={() => handleStatusFilter('non-existent')}
         >
-          <StatTitle>Valid POIs</StatTitle>
-          <StatValue color="#4CAF50">{stats.valid}</StatValue>
+          <StatTitle>Non-existent</StatTitle>
+          <StatValue color="#F44336">{stats.non_existent}</StatValue>
+        </StatBox>
+        <StatBox 
+          clickable={true} 
+          selected={statusFilter === 'wrong-location'}
+          onClick={() => handleStatusFilter('wrong-location')}
+        >
+          <StatTitle>Wrong Location</StatTitle>
+          <StatValue color="#FF9800">{stats.wrong_location}</StatValue>
         </StatBox>
         <StatBox 
           clickable={true} 
           selected={statusFilter === 'invalid'}
           onClick={() => handleStatusFilter('invalid')}
         >
-          <StatTitle>Invalid POIs</StatTitle>
-          <StatValue color="#F44336">{stats.invalid}</StatValue>
+          <StatTitle>Invalid Location</StatTitle>
+          <StatValue color="#9C27B0">{stats.invalid_location}</StatValue>
+        </StatBox>
+        <StatBox 
+          clickable={true} 
+          selected={statusFilter === 'exception'}
+          onClick={() => handleStatusFilter('exception')}
+        >
+          <StatTitle>Rule Exception</StatTitle>
+          <StatValue color="#4CAF50">{stats.rule_exception}</StatValue>
         </StatBox>
       </StatsContainer>
     );
@@ -431,22 +549,37 @@ const POIListComponent = () => {
           All POIs
         </FilterButton>
         <FilterButton 
-          color="#4CAF50" 
-          active={statusFilter === 'valid'}
-          onClick={() => handleStatusFilter('valid')}
+          color="#F44336" 
+          active={statusFilter === 'non-existent'}
+          onClick={() => handleStatusFilter('non-existent')}
         >
-          Valid POIs
+          Non-existent
         </FilterButton>
         <FilterButton 
-          color="#F44336" 
+          color="#FF9800" 
+          active={statusFilter === 'wrong-location'}
+          onClick={() => handleStatusFilter('wrong-location')}
+        >
+          Wrong Location
+        </FilterButton>
+        <FilterButton 
+          color="#9C27B0" 
           active={statusFilter === 'invalid'}
           onClick={() => handleStatusFilter('invalid')}
         >
-          Invalid POIs
+          Invalid Location
+        </FilterButton>
+        <FilterButton 
+          color="#4CAF50" 
+          active={statusFilter === 'exception'}
+          onClick={() => handleStatusFilter('exception')}
+        >
+          Rule Exception
         </FilterButton>
       </FilterContainer>
     );
   };
+  
   
   // Render the main table for POI data
   const renderTable = () => {
@@ -495,12 +628,12 @@ const POIListComponent = () => {
           </TableHead>
           <TableBody>
             {currentItems.map((poi) => (
-              <tr key={poi.id} className={poi.label === 0 ? 'invalid' : ''}>
+              <tr key={poi.id} className={poi.status}>
                 <td>{poi.id}</td>
                 <td>{poi.POI_NAME || 'Unnamed'}</td>
                 <td>
-                  <StatusBadge valid={poi.label === 1}>
-                    {poi.label === 1 ? 'Valid' : 'Invalid'}
+                  <StatusBadge status={poi.status}>
+                    {getStatusText(poi.status)}
                   </StatusBadge>
                 </td>
                 <td>{formatCoord(poi.y_cord)}</td>
@@ -527,6 +660,7 @@ const POIListComponent = () => {
           />
         </SearchContainer>
       </ListHeader>
+    
       
       {poiData && renderStats()}
       {poiData && renderFilterButtons()}
