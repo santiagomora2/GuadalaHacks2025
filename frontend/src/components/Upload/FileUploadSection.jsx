@@ -1,7 +1,8 @@
 // frontend/src/components/Upload/FileUploadSection.jsx
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { POIContext } from '../../context/POIContext';
 
 // Container for the upload section
 const UploadContainer = styled.section`
@@ -142,6 +143,20 @@ const FileSize = styled.p`
   font-size: 0.8rem;
 `;
 
+// Button container for multiple buttons
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+  
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: center;
+  }
+`;
+
 // Validate button
 const ValidateButton = styled.button`
   background: linear-gradient(90deg, #00AFAA 0%, #4A56A6 100%);
@@ -152,7 +167,6 @@ const ValidateButton = styled.button`
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 30px;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 175, 170, 0.2);
   
@@ -169,13 +183,23 @@ const ValidateButton = styled.button`
   }
 `;
 
+// Analyze button - similar to validate button but with different colors
+const AnalyzeButton = styled(ValidateButton)`
+  background: linear-gradient(90deg, #FFC107 0%, #FF9800 100%);
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+  
+  &:hover {
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);
+  }
+`;
+
 // Message after validation
 const ValidationMessage = styled.div`
   margin-top: 20px;
   padding: 15px;
   border-radius: 8px;
-  background-color: ${props => props.type === 'success' ? 'rgba(46, 213, 115, 0.1)' : 'rgba(255, 71, 87, 0.1)'};
-  color: ${props => props.type === 'success' ? '#2ed573' : '#ff4757'};
+  background-color: ${props => props.type === 'success' ? 'rgba(46, 213, 115, 0.1)' : props.type === 'warning' ? 'rgba(255, 193, 7, 0.1)' : 'rgba(255, 71, 87, 0.1)'};
+  color: ${props => props.type === 'success' ? '#2ed573' : props.type === 'warning' ? '#FFC107' : '#ff4757'};
   display: flex;
   align-items: center;
   
@@ -201,6 +225,42 @@ const LoadingSpinner = styled.div`
   }
 `;
 
+// Stats container
+const StatsContainer = styled.div`
+  margin-top: 25px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: space-around;
+`;
+
+// Stat item
+const StatItem = styled.div`
+  text-align: center;
+  padding: 15px;
+  min-width: 120px;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+`;
+
+// Stat value
+const StatValue = styled.div`
+  font-size: 2rem;
+  font-weight: bold;
+  color: ${props => props.color || '#4A56A6'};
+  margin-bottom: 5px;
+`;
+
+// Stat label
+const StatLabel = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+`;
+
 const FileUploadSection = () => {
   const [poiFile, setPoiFile] = useState(null);
   const [streetsFile, setStreetsFile] = useState(null);
@@ -208,8 +268,11 @@ const FileUploadSection = () => {
   const [isDraggingPOI, setIsDraggingPOI] = useState(false);
   const [isDraggingStreets, setIsDraggingStreets] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
+  const [filesUploaded, setFilesUploaded] = useState(false);
+  const { setPOIData, poiData } = useContext(POIContext);
 
   // Handle file selection for POI file
   const handlePoiFileChange = (e) => {
@@ -285,6 +348,8 @@ const FileUploadSection = () => {
     setIsUploading(true);
     setUploadProgress(0);
     setErrorMsg('');
+    setFilesUploaded(false);
+    setPOIData(null); // Limpiar datos anteriores
     
     try {
       // Create FormData object
@@ -306,6 +371,7 @@ const FileUploadSection = () => {
       // If successful, set validation status
       if (response.data.success) {
         setValidationStatus('success');
+        setFilesUploaded(true);
         console.log('Files saved to:', response.data);
       } else {
         setValidationStatus('error');
@@ -319,6 +385,65 @@ const FileUploadSection = () => {
       setIsUploading(false);
     }
   };
+
+  // Handle analyze - process the uploaded files
+  const handleAnalyze = async () => {
+    if (!filesUploaded) {
+      setValidationStatus('warning');
+      setErrorMsg('Please upload and validate your files first.');
+      return;
+    }
+    
+    setIsAnalyzing(true);
+    setErrorMsg('');
+    
+    try {
+      // Call the process endpoint
+      const response = await axios.get('http://localhost:5000/process');
+      
+      // Log full response for debugging
+      console.log('Full response:', response);
+      
+      // Process and store the data
+      console.log('Analysis result:', response.data);
+      
+      // Asegurarnos de que los datos sean un objeto
+      const processedData = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+      setPOIData(processedData);
+      
+      setValidationStatus('success');
+      
+    } catch (error) {
+      console.error('Full error:', error);
+      console.error('Error response:', error.response);
+      setValidationStatus('error');
+      setErrorMsg(error.response?.data?.detail || error.message || 'Failed to analyze the data. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Calculate statistics from POI data
+  const calculateStats = () => {
+    if (!poiData) return { total: 0, valid: 0, invalid: 0, percentage: 0 };
+    
+    const total = Object.keys(poiData).length;
+    const valid = Object.values(poiData).filter(
+      poi => poi.label === 1
+    ).length;
+    const invalid = Object.values(poiData).filter(
+      poi => poi.label === 0
+    ).length;
+    const errors = Object.values(poiData).filter(
+      poi => poi.error
+    ).length;
+    
+    const percentage = total > 0 ? Math.round((valid / (total - errors)) * 100) : 0;
+    
+    return { total, valid, invalid, errors, percentage };
+  };
+
+  const stats = calculateStats();
 
   return (
     <UploadContainer>
@@ -402,7 +527,7 @@ const FileUploadSection = () => {
         </UploadBox>
       </UploadGrid>
       
-      <div style={{ textAlign: 'center' }}>
+      <ButtonContainer>
         <ValidateButton 
           disabled={!poiFile || !streetsFile || isUploading} 
           onClick={handleValidate}
@@ -412,18 +537,64 @@ const FileUploadSection = () => {
               <LoadingSpinner /> Uploading... {uploadProgress > 0 ? `${uploadProgress}%` : ''}
             </>
           ) : (
-            'Validate POIs'
+            'Upload Files'
           )}
         </ValidateButton>
-      </div>
+        
+        <AnalyzeButton
+          disabled={!filesUploaded || isAnalyzing}
+          onClick={handleAnalyze}
+        >
+          {isAnalyzing ? (
+            <>
+              <LoadingSpinner /> Analyzing...
+            </>
+          ) : (
+            'Analyze POIs'
+          )}
+        </AnalyzeButton>
+      </ButtonContainer>
       
       {validationStatus && (
         <ValidationMessage type={validationStatus}>
-          <i className={validationStatus === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'}></i>
-          {validationStatus === 'success' 
-            ? 'Files uploaded and validation completed successfully. Results are displayed on the map below.' 
-            : `Validation failed. ${errorMsg}`}
+          <i className={
+            validationStatus === 'success' 
+              ? 'fas fa-check-circle' 
+              : validationStatus === 'warning'
+                ? 'fas fa-exclamation-triangle'
+                : 'fas fa-exclamation-circle'
+          }></i>
+          {validationStatus === 'success' && !poiData 
+            ? 'Files uploaded successfully. Click "Analyze POIs" to start the analysis process.' 
+            : validationStatus === 'success' && poiData
+              ? 'Analysis completed successfully. Results are displayed on the map below.'
+              : validationStatus === 'warning'
+                ? `Warning: ${errorMsg}`
+                : `Error: ${errorMsg}`}
         </ValidationMessage>
+      )}
+      
+      {poiData && (
+        <StatsContainer>
+          <StatItem>
+            <StatValue>{stats.total}</StatValue>
+            <StatLabel>Total POIs</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatValue color="#4CAF50">{stats.valid}</StatValue>
+            <StatLabel>Valid POIs</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatValue color="#F44336">{stats.invalid}</StatValue>
+            <StatLabel>Invalid POIs</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatValue color={stats.percentage > 80 ? '#4CAF50' : stats.percentage > 60 ? '#FFC107' : '#F44336'}>
+              {stats.percentage}%
+            </StatValue>
+            <StatLabel>Validity Rate</StatLabel>
+          </StatItem>
+        </StatsContainer>
       )}
     </UploadContainer>
   );

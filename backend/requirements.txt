@@ -1,5 +1,12 @@
-# backend/requirements.txt
-flask==2.3.3
-flask-cors==4.0.0
+fastapi==0.109.2
+uvicorn==0.27.1
+python-multipart==0.0.9
+pandas==2.1.4
+geopandas==0.14.3
+numpy==1.26.3
+torch==2.2.0
+torchvision==0.17.0
+Pillow==10.2.0
+requests==2.31.0
 python-dotenv==1.0.0
-gunicorn==21.2.0
+tqdm==4.66.2

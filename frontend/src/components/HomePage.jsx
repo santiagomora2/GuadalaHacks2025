@@ -3,6 +3,7 @@ import React from 'react';
 import styled from 'styled-components';
 import FileUploadSection from './Upload/FileUploadSection';
 import HEREMapComponent from './Map/HEREMapComponent';
+import POIListComponent from './POI/POIListComponent';
 
 // Hero section with animation
 const HeroSection = styled.header`
@@ -57,8 +58,8 @@ const Subtitle = styled.p`
   line-height: 1.6;
 `;
 
-// Map section with improved style
-const MapSection = styled.section`
+// Section styling (common for both map and list)
+const Section = styled.section`
   width: 100%;
   margin-top: 20px;
   margin-bottom: 40px;
@@ -68,7 +69,9 @@ const MapSection = styled.section`
   position: relative;
   animation: slideUp 1s ease-in-out;
   background-color: white;
-  padding: 20px;
+  padding: ${props => props.noPadding ? '0' : '20px'};
+  animation-delay: ${props => props.delay || '0s'};
+  animation-fill-mode: both;
 
   @keyframes slideUp {
     from {
@@ -80,6 +83,14 @@ const MapSection = styled.section`
       transform: translateY(0);
     }
   }
+`;
+
+// Section title
+const SectionTitle = styled.h2`
+  color: #333;
+  font-size: 1.5rem;
+  margin: 0 0 20px 0;
+  padding: 0 20px;
 `;
 
 const HomePage = () => {
@@ -95,9 +106,16 @@ const HomePage = () => {
       
       <FileUploadSection />
       
-      <MapSection id="map">
+      {/* POI List Section (now above the map) */}
+      <Section id="poi-list" noPadding={true}>
+        <POIListComponent />
+      </Section>
+      
+      {/* Map Section */}
+      <Section id="map" delay="0.2s">
+        <SectionTitle>Map Visualization</SectionTitle>
         <HEREMapComponent />
-      </MapSection>
+      </Section>
     </>
   );
 };
