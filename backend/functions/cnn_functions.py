@@ -58,22 +58,6 @@ class SidesCNN(torch.nn.Module):
     def forward(self, x):
         return self.net(x)
 
-class SidesCNN(torch.nn.Module):
-    def __init__(self):
-        super(SidesCNN, self).__init__()
-        self.net = torch.nn.Sequential(
-            torch.nn.Conv2d(3, 32, kernel_size=3, padding=1), torch.nn.ReLU(), torch.nn.MaxPool2d(2),
-            torch.nn.Conv2d(32, 64, kernel_size=3, padding=1), torch.nn.ReLU(), torch.nn.MaxPool2d(2),
-            torch.nn.Conv2d(64, 128, kernel_size=3, padding=1), torch.nn.ReLU(), torch.nn.MaxPool2d(2),
-            torch.nn.Flatten(),
-            torch.nn.Linear(128 * 16 * 16, 64), torch.nn.ReLU(),
-            torch.nn.Linear(64, 1),
-            torch.nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        return self.net(x)
-
 def classify_sides(image):
     """
     Clasifica si una imagen satelital pertenece al lado correcto usando una CNN.
