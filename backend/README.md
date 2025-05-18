@@ -6,187 +6,68 @@ This is the Backend application for the POI 295 Validation Tool, developed for t
 
 ## ✨ Features
 
-- **Modern UI**: Clean, responsive interface following HERE Maps design language
-- **Interactive Map**: Visualization of POIs and validation results
-- **File Upload**: Drag-and-drop interface for CSV and GeoJSON files
-- **Team Page**: Meet the developers behind this project
-- **Animated Background**: Custom visual elements for an engaging user experience
-
+- **Data Processing**: Merge information from various datasets in different formats.
+- **POI segmentation**: Segmentation of the POIs based on location and orientation attributes.
+- **Satellite Image Estraction**: Using Here API.
+- **Deep Learning - based prediction**: Use of CNNs for image processing and prediction.
+- **Multiple scenarios**: Handle each particular case with an adequate solution.
 ## 🚀 Quick Start
 
 ### Development Environment
 
 1. Install dependencies:
    ```bash
-   npm install
+   pip install requirements.txt
    ```
 
-2. Set up environment variables:
-   Create a `.env` file in the frontend directory with:
+2. Run FastAPI server:
    ```
-   REACT_APP_HERE_API_KEY=your_api_key_here
-   REACT_APP_API_URL=http://localhost:5000
+   python app.py
    ```
-
-3. Start the development server:
-   ```bash
-   npm start
-   ```
-
-4. The application will be available at [http://localhost:3000](http://localhost:3000)
+3. The API will be available at [http://localhost:8000](http://localhost:8000)
 
 
 ## 🧩 Application Structure
 
 ```
-frontend/
-├── public/                  # Static files
-│   ├── index.html          # HTML template
-│   ├── favicon.ico         # App icon
-│   └── ...
-│
-├── src/                     # Source code
-│   ├── assets/             # Static assets
-│   │   └── images/         # Image files including team photos
-│   │
-│   ├── components/         # React components
-│   │   ├── Map/            # Map-related components
-│   │   │   ├── HEREMapComponent.jsx  # HERE Maps integration
-│   │   │   └── ...
-│   │   │
-│   │   ├── Team/           # Team page components
-│   │   │   └── TeamPage.jsx          # Team showcase
-│   │   │
-│   │   ├── UI/             # UI components
-│   │   │   ├── Navbar.jsx             # Navigation bar
-│   │   │   ├── Footer.jsx             # Page footer
-│   │   │   └── BackgroundEffect.jsx   # Animated background
-│   │   │
-│   │   └── Upload/         # File upload components
-│   │       └── FileUploadSection.jsx  # File upload interface
-│   │
-│   ├── services/           # Service integrations
-│   │   └── HereMapService.js         # HERE Maps SDK utilities
-│   │
-│   ├── App.js              # Main application component
-│   ├── index.js            # Application entry point
-│   └── index.css           # Global styles
-│
-├── .dockerignore           # Docker ignore file
-├── Dockerfile              # Docker configuration
-├── package.json            # Dependencies and scripts
-└── README.md               # This documentation
+backend/
+├── functions/
+│ └── cnn_functions.py
+| └── data_processing_functions.py
+| └── satellite_functions.py
+├── models/
+│ ├── modelo_camellones.pth
+│ └── modelo_side.pth
+├── .dockerignore
+├── .gitignore
+├── Dockerfile
+└── README.md
 ```
-
 ## 🧠 Key Concepts
 
-### Component Architecture
+- **Image-Based Classification**: Use of CNNs trained on POI satellite data.
+- **295 Specification Logic**: Backend logic built around the HERE Maps 295 format.
+- **Coordinate Normalization**: Efficient coordinate parsing and map tile management.
 
-The application uses a modular component architecture:
+---
 
-- **Container Components**: Manage state and data flow
-- **Presentational Components**: Focus on UI rendering
-- **Service Modules**: Handle external API communication
-- **Shared UI Components**: Reusable UI elements
+## HERE Maps Integration
 
-### Styling Approach
+The HERE API is used to:
+- Fetch satellite tiles based on POI coordinates.
+- Normalize zoom levels and tile formatting.
+- Store images in a consistent format (PNG, 256x256 px).
 
-We use styled-components for styling:
+## 📦 Dependencies```
+- ```FastAPI``` – Web framework for serving the API.
 
-- **Component-scoped styles**: CSS encapsulated within components
-- **Theme consistency**: HERE Maps color palette and design language
-- **Responsive design**: Mobile-first approach with appropriate breakpoints
-- **Animation**: Subtle animations and transitions for an engaging experience
+- ```GeoPandas``` - Handle map data effectively.
 
-### HERE Maps Integration
+- ```torch``` – For running CNN-based classification.
 
-The map integration is handled through:
+- ```requests, PIL``` – To handle image retrieval and processing.
 
-- **HEREMapService.js**: Manages HERE Maps JavaScript SDK loading and initialization
-- **HEREMapComponent.jsx**: React component that renders and interacts with the map
-- **Dynamic script loading**: Asynchronously loads HERE Maps SDK when needed
-
-## 👩‍💻 Development Guide
-
-### Adding New Components
-
-1. Create a new component in the appropriate directory:
-   ```jsx
-   // src/components/Example/NewComponent.jsx
-   import React from 'react';
-   import styled from 'styled-components';
-
-   const Container = styled.div`
-     /* Your styles here */
-   `;
-
-   const NewComponent = ({ prop1, prop2 }) => {
-     return (
-       <Container>
-         {/* Component content */}
-       </Container>
-     );
-   };
-
-   export default NewComponent;
-   ```
-
-2. Import and use the component where needed:
-   ```jsx
-   import NewComponent from './components/Example/NewComponent';
-   
-   // Then in your render method or return statement:
-   <NewComponent prop1="value" prop2={42} />
-   ```
-
-### Working with HERE Maps
-
-To add new map functionality:
-
-1. Add methods to `src/services/HereMapService.js`:
-   ```javascript
-   export const newMapFunction = (map, ...params) => {
-     // Implementation
-   };
-   ```
-
-2. Import and use in map components:
-   ```javascript
-   import { newMapFunction } from '../../services/HereMapService';
-   
-   // Then in your component:
-   newMapFunction(mapInstance, param1, param2);
-   ```
-
-### File Upload & Backend Integration
-
-The file upload process:
-
-1. User selects or drops files in the `FileUploadSection` component
-2. Files are sent to the backend using `axios` for HTTP requests
-3. Backend processes files and returns validation results
-4. Results are displayed on the map
-
-## 🌐 Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `REACT_APP_HERE_API_KEY` | HERE Maps API Key | - |
-| `REACT_APP_API_URL` | Backend API URL | http://localhost:5000 |
-
-## 📦 Dependencies
-
-Major dependencies include:
-
-- **react**: UI library
-- **react-router-dom**: Page routing
-- **styled-components**: CSS-in-JS styling
-- **axios**: HTTP client
-
-Dev dependencies:
-
-- **@testing-library/react**: Testing utilities
-- **react-scripts**: Build scripts and configuration
+- ```python-dotenv``` – Load sensitive info like API keys from .env.
 
 
 ## 🔄 CI/CD Integration
@@ -195,14 +76,5 @@ This project can be set up with:
 
 - **Docker Hub**: For container registry integration
 
-## 🌟 Best Practices
-
-This project follows these best practices:
-
-- **Component Composition**: Building complex UIs from simple components
-- **Controlled Components**: Forms with React-managed state
-- **Proper Error Handling**: Graceful error management and user feedback
-- **Responsive Design**: Works on devices of all sizes
-- **Accessibility**: ARIA attributes and keyboard navigation
-- **Code Splitting**: Lazy loading for improved performance
-- **Performance Optimization**: Memoization and optimized rendering
+## 📫 Questions?
+Feel free to reach out or open an issue if you need help understanding or extending this backend.
