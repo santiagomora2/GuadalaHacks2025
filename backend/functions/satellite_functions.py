@@ -14,8 +14,12 @@ API_KEY = os.environ.get('API_KEY', 'eVp5bxaGV_HO246C7MkTPsgR1jTzYzuy3CO76Fk9ESI
 # Función para calcular puntos perpendiculares
 def punto_y_perpendicular(coords, percent, side='R'):
     """
-    Calcula el punto que se encuentra en un porcentaje específico de una ruta 
-    y genera un vector unitario perpendicular en ese punto.
+    Calculate the point of interest coordinates and the perpendicular normal vector to the direction vector based on linked nodes and the percentage of linestring to POI and side of POI 
+
+    Input: LineString (route polygon as set of nodes, using latitude and longitude), percentage of POI location on route, side 
+
+    Output: Coordinates of POI, perpendicular normal vector, link reference node
+
     """
     percent = percent/100 if percent > 1 else percent
 
@@ -81,7 +85,20 @@ def punto_y_perpendicular(coords, percent, side='R'):
 
 # Funciones para manejo de tiles y coordenadas
 def lat_lon_to_tile(lat, lon, zoom):
-    """Convierte latitud y longitud a índices de tile (x, y) en un nivel de zoom dado."""
+    """
+    Converts latitude and longitude to tile (x, y) indices at a given zoom level.
+
+    This is useful when identifying which map tile a geographic point (e.g., from a GeoJSON or POI file)
+    belongs to in a tile-based mapping system.
+
+    Parameters:
+        lat (float): Latitude in decimal degrees.
+        lon (float): Longitude in decimal degrees.
+        zoom (int): Zoom level of the tile grid.
+
+    Returns:
+        tuple: (x, y) tile indices corresponding to the input coordinates.
+    """
     lat_rad = math.radians(lat)
     lon_rad = math.radians(lon)
     n = 2.0 ** zoom
@@ -90,7 +107,20 @@ def lat_lon_to_tile(lat, lon, zoom):
     return (x, y)
 
 def tile_coords_to_lat_lon(x, y, zoom):
-    """Convierte índices de tile (x, y) a latitud y longitud."""
+    """
+    Converts tile (x, y) indices back to latitude and longitude.
+
+    This provides the geographic coordinates for the top-left corner of a tile, which
+    is useful when reconstructing spatial extents from tile grids.
+
+    Parameters:
+        x (int): X index of the tile.
+        y (int): Y index of the tile.
+        zoom (int): Zoom level of the tile grid.
+
+    Returns:
+        tuple: (latitude, longitude) of the tile corner.
+    """
     n = 2.0 ** zoom
     lon_deg = x / n * 360.0 - 180.0
     lat_rad = math.atan(math.sinh(math.pi * (1-2 * y/n)))
@@ -98,7 +128,21 @@ def tile_coords_to_lat_lon(x, y, zoom):
     return (lat_def, lon_deg)
 
 def get_tile_bounds(x, y, zoom):
-    """Obtiene los límites de un tile en coordenadas geográficas."""
+    """
+    Returns the geographic bounding box of a tile as corner coordinates.
+
+    Useful for determining the exact spatial extent of a satellite or map tile, which can
+    be compared with geometries in a GeoJSON or used to generate spatial queries.
+
+    Parameters:
+        x (int): X index of the tile.
+        y (int): Y index of the tile.
+        zoom (int): Zoom level.
+
+    Returns:
+        tuple: Coordinates of the four corners of the tile in (lat, lon) format.
+               Returned in order: top-left, top-right, bottom-right, bottom-left.
+    """
     lat1, lon1 = tile_coords_to_lat_lon(x,y,zoom)
     lat2, lon2 = tile_coords_to_lat_lon(x+1, y, zoom)
     lat3, lon3 = tile_coords_to_lat_lon(x+1,y+1,zoom)
@@ -106,7 +150,18 @@ def get_tile_bounds(x, y, zoom):
     return (lat1, lon1), (lat2, lon2), (lat3, lon3), (lat4, lon4)
 
 def create_wkt_polygon(bounds):
-    """Crea un polígono WKT a partir de límites."""
+    """
+    Creates a WKT (Well-Known Text) polygon string from a list of tile corner bounds.
+
+    This is useful when exporting or visualizing the area covered by a tile in tools that
+    accept WKT input, or for spatial operations against GeoJSON features.
+
+    Parameters:
+        bounds (tuple): Four (lat, lon) coordinate pairs representing the corners of a tile.
+
+    Returns:
+        str: A WKT polygon string representing the tile area.
+    """
     (lat1, lon1), (lat2, lon2), (lat3, lon3), (lat4, lon4) = bounds
     wkt = f"POLYGON(({lon1} {lat1}, {lon2} {lat2}, {lon3} {lat3}, {lon4} {lat4}, {lon1} {lat1}))"
     return wkt
