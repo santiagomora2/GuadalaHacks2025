@@ -8,6 +8,7 @@ import Footer from './components/UI/Footer';
 import BackgroundEffect from './components/UI/BackgroundEffect';
 import FileUploadSection from './components/Upload/FileUploadSection';
 import HEREMapComponent from './components/Map/HEREMapComponent';
+import POI295GuidePage from './components/Guide/POI295GuidePage';
 
 // Global container style
 const GlobalContainer = styled.div`
@@ -143,6 +144,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/team" element={<TeamPage />} />
+            <Route path="/guide" element={<POI295GuidePage />} />
           </Routes>
         </MainContainer>
         

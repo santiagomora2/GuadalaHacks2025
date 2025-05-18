@@ -249,6 +249,9 @@ const Navbar = () => {
         <NavItemLink to="/" isactive={(pathname === '/' || pathname === '') ? "true" : "false"}>
           Map
         </NavItemLink>
+        <NavItemLink to="/guide" isactive={pathname === '/guide' ? "true" : "false"}>
+          POI 295 Guide
+        </NavItemLink>
         <NavItemLink to="/team" isactive={pathname === '/team' ? "true" : "false"}>
           Meet the Team
         </NavItemLink>
