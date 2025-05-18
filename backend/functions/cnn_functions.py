@@ -8,28 +8,30 @@ import requests
 import math
 import os
 
-# Importar funciones desde el mismo directorio
+# Import functions 
 from functions.satellite_functions import punto_y_perpendicular, get_satellite_tile
 
-# Utilizar variables de entorno
+# Set enviorment variables
 API_KEY = os.environ.get('API_KEY', 'wEmGiRQk7GrIqqwGGmhK-Qjmdg-KkkUFXOGAjfjzsoQ')
 DATA_DIR = os.environ.get('DATA_DIR', '../data')
 TEMP_DIR = os.environ.get('TEMP_DIR', 'temp')
 MODEL_PATH = os.environ.get('MODEL_PATH', 'models/modelo_camellones.pth')
 
-# Configuración de imágenes satélite
+# Set satellite images parameters
 ZOOM_LEVEL = int(os.environ.get('SATELLITE_ZOOM_LEVEL', 19))
 TILE_FORMAT = os.environ.get('SATELLITE_TILE_FORMAT', 'png')
 TILE_SIZE = int(os.environ.get('SATELLITE_TILE_SIZE', 256))
 
-# Definición del modelo CNN
+# Class definition convolutional neural network
 class CamellonCNN(torch.nn.Module):
     def __init__(self):
         super(CamellonCNN, self).__init__()
         self.net = torch.nn.Sequential(
+            #Convolutional layers
             torch.nn.Conv2d(3, 32, kernel_size=3, padding=1), torch.nn.ReLU(), torch.nn.MaxPool2d(2),
             torch.nn.Conv2d(32, 64, kernel_size=3, padding=1), torch.nn.ReLU(), torch.nn.MaxPool2d(2),
             torch.nn.Conv2d(64, 128, kernel_size=3, padding=1), torch.nn.ReLU(), torch.nn.MaxPool2d(2),
+            #Linear layers
             torch.nn.Flatten(),
             torch.nn.Linear(128 * 16 * 16, 64), torch.nn.ReLU(),
             torch.nn.Linear(64, 1),
@@ -40,7 +42,15 @@ class CamellonCNN(torch.nn.Module):
         return self.net(x)
     
 def predecir(df):
-    """Realiza la predicción de camellones para los puntos del DataFrame."""
+    """
+    Predict if found ridge is empty or contains building, based on a pretrained CNN, for every row in a dataframe containing the POI´s LineString, 
+    percentage of route, side of POI to LineString
+
+    Input: DataFrame with columns POI_ID, PERCFREF, geometry, 
+
+    Output: DataFrame with predicted labels, 0 for empty ridge, 1 for ridge containing POI
+
+    """
     # Ajustar ruta del modelo - si es relativa, hacerla absoluta
     model_path = MODEL_PATH
     if not os.path.isabs(model_path):
@@ -76,9 +86,10 @@ def predecir(df):
     ])
     
     resultados = {}
-    
+    #Iterate DataFrame to predict for each row
     for _, row in df.iterrows():
         try:
+            
             pid = row['POI_ID']
             coords = ast.literal_eval(row['geometry']) if isinstance(row['geometry'], str) else row['geometry']
             percent = float(row['PERCFRREF'])
