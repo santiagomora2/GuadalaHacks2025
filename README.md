@@ -65,7 +65,7 @@ The application follows a modern client-server architecture:
 ```
 ┌─────────────┐       ┌─────────────┐       ┌─────────────┐
 │             │       │             │       │             │
-│  React.js   │◄─────►│  Fast API  │◄─────►│  HERE Maps  │
+│  React.js   │◄─────►│  Fast API   │◄─────►│  HERE Maps  │
 │  Frontend   │       │  Backend    │       │  Services   │
 │             │       │             │       │             │
 └─────────────┘       └─────────────┘       └─────────────┘
