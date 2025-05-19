@@ -9,7 +9,7 @@ import os
 import io
 
 # Obtener API KEY desde variables de entorno
-API_KEY = os.environ.get('API_KEY')
+API_KEY = os.environ.get('API_KEY', os.environ.get('REACT_APP_HERE_API_KEY'))
 
 # Función para calcular puntos perpendiculares
 def punto_y_perpendicular(coords, percent, side='R'):
