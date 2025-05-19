@@ -136,7 +136,7 @@ This project was developed for Guadalahacks 2025 by:
 
 - Santiago Mora Cruz - Data Scientist
 - Jose Manuel Martinez Morales - Software Developer
-- Rene Abraham Calzadilla Calderon - Data Scientist
+- René Abraham Calzadilla Calderon - Data Scientist
 - Guillermo Villegas Morales - Data Scientist
 
 ## 🛠 Development
