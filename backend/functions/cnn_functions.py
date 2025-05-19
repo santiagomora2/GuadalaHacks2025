@@ -12,7 +12,7 @@ import os
 from functions.satellite_functions import punto_y_perpendicular, get_satellite_tile
 
 # Utilizar variables de entorno
-API_KEY = os.environ.get('API_KEY', 'eVp5bxaGV_HO246C7MkTPsgR1jTzYzuy3CO76Fk9ESI')
+API_KEY = os.environ.get('API_KEY')
 DATA_DIR = os.environ.get('DATA_DIR', '../data')
 TEMP_DIR = os.environ.get('TEMP_DIR', 'temp')
 MODEL_PATH = os.environ.get('MODEL_PATH', '../models/modelo_camellones.pth')
