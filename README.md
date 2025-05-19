@@ -23,7 +23,7 @@ POI 295 Validation Tool is a specialized web application built for the **Guadala
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/poi-validation-tool.git
+   git clone https://https://github.com/JoseMartinezM/GuadalaHacks2025/
    ```
 
 2. Set your HERE Maps API key in the `.env` file:
