@@ -122,7 +122,9 @@ Guadalahacks/
    - Streets Navigation GeoJSON file (containing road network data)
 
 2. **Backend Processing**: The backend processes these files to:
+   - Associate POIs to their link_ids and coordinates
    - Identify POIs that are located on medians
+   - Classify them into 4 cases using Convolutional Neural Networks (CNNs)
    - Apply HERE Maps Specification 295 validation rules
 
 3. **Result Visualization**: The results are displayed on an interactive map with:
