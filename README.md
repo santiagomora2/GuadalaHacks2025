@@ -86,6 +86,9 @@ The application follows a modern client-server architecture:
 
 ### Backend
 - Python 3.8+
+- Pytorch
+- Pandas
+- GeoPandas
 - Fast API
 
 ### DevOps
